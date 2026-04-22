@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Gerador de Sentenças — .docx</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f4f4f6;
+      color: #1c1c1e;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      padding: 16px 24px;
+      background: #fff;
+      border-bottom: 1px solid #e0e0e5;
+    }
+    h1 { margin: 0; font-size: 18px; font-weight: 600; }
+    .subtitulo { margin: 4px 0 0; font-size: 13px; color: #6c6c70; }
+    main {
+      flex: 1;
+      padding: 16px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow: hidden;
+    }
+    textarea {
+      flex: 1;
+      width: 100%;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 13px;
+      padding: 12px;
+      border: 1px solid #d0d0d5;
+      border-radius: 6px;
+      resize: none;
+      background: #fff;
+      line-height: 1.45;
+    }
+    textarea:focus { outline: 2px solid #0a5bd9; outline-offset: -1px; }
+    .acoes {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .primario { background: #0a5bd9; color: #fff; }
+    .primario:hover { background: #0848b0; }
+    .primario:disabled { background: #8aa8d8; cursor: not-allowed; }
+    .secundario { background: #e0e0e5; color: #1c1c1e; }
+    .secundario:hover { background: #d0d0d5; }
+    .status {
+      font-size: 13px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      min-height: 38px;
+      display: flex;
+      align-items: center;
+    }
+    .status.ok { background: #d7f0d9; color: #1d5c24; }
+    .status.erro { background: #f9d7d7; color: #8a1d1d; white-space: pre-wrap; font-family: 'Consolas', monospace; font-size: 12px; }
+    .status.info { background: #e6efff; color: #0a3a8a; }
+    .dica {
+      font-size: 12px;
+      color: #6c6c70;
+      line-height: 1.5;
+    }
+    .dica code {
+      background: #e8e8ec;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Gerador de Sentenças</h1>
+    <p class="subtitulo">Cole o texto no formato JS e gere o documento .docx formatado.</p>
+  </header>
+  <main>
+    <div class="dica">
+      Cole o código contendo <code>PROCESSO</code>, <code>RELATORIO</code>, <code>FUNDAMENTACAO</code> e <code>DISPOSITIVO</code>
+      — as funções <code>bp()</code>, <code>sh()</code>, <code>cp()</code> e <code>el()</code> são reconhecidas automaticamente.
+    </div>
+    <textarea id="entrada" placeholder="Cole aqui o texto da sentença..." spellcheck="false"></textarea>
+    <div class="acoes">
+      <button class="primario" id="btnGerar">Gerar .docx</button>
+      <button class="secundario" id="btnLimpar">Limpar</button>
+    </div>
+    <div class="status info" id="status">Aguardando texto...</div>
+  </main>
+
+  <script>
+    const entrada = document.getElementById('entrada');
+    const status = document.getElementById('status');
+    const btnGerar = document.getElementById('btnGerar');
+    const btnLimpar = document.getElementById('btnLimpar');
+
+    function setStatus(texto, tipo) {
+      status.textContent = texto;
+      status.className = 'status ' + tipo;
+    }
+
+    btnGerar.addEventListener('click', async () => {
+      const texto = entrada.value.trim();
+      if (!texto) {
+        setStatus('Cole o texto da sentença antes de gerar.', 'erro');
+        return;
+      }
+      btnGerar.disabled = true;
+      setStatus('Gerando documento...', 'info');
+      try {
+        const resultado = await window.api.gerarDocx(texto);
+        if (resultado.ok) {
+          setStatus('Documento salvo em: ' + resultado.caminho, 'ok');
+        } else if (resultado.motivo === 'cancelado') {
+          setStatus('Geração cancelada.', 'info');
+        } else {
+          setStatus('Erro: ' + resultado.motivo, 'erro');
+        }
+      } catch (e) {
+        setStatus('Erro inesperado: ' + e.message, 'erro');
+      } finally {
+        btnGerar.disabled = false;
+      }
+    });
+
+    btnLimpar.addEventListener('click', () => {
+      entrada.value = '';
+      setStatus('Aguardando texto...', 'info');
+      entrada.focus();
+    });
+  </script>
+</body>
+</html>

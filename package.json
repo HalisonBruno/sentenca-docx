@@ -1,0 +1,24 @@
+{
+  "name": "sentenca-docx",
+  "version": "1.0.0",
+  "description": "Conversor de sentenças em formato JS para .docx",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "build": {
+    "appId": "com.halis.sentencadocx",
+    "productName": "Gerador de Sentenças",
+    "win": {
+      "target": "portable"
+    }
+  },
+  "dependencies": {
+    "docx": "^8.5.0"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.13.3"
+  }
+}
