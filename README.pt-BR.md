@@ -4,6 +4,8 @@ git push
 
 # Gerador de Sentenças — .docx
 
+![Demonstração do sentenca-docx convertendo JavaScript em documento Word formatado](demo.gif)
+
 Aplicativo desktop (Electron) que converte sentenças judiciais estruturadas em formato JavaScript para documentos Word (.docx) formatados conforme padrão forense.
 
 ## Por que JavaScript como formato intermediário?
