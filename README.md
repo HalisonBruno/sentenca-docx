@@ -2,6 +2,8 @@
 
 # Court Ruling Generator — .docx
 
+![Demo of sentenca-docx converting JavaScript into a formatted Word document](demo.gif)
+
 A desktop application (Electron) that converts structured court rulings written in JavaScript format into Word documents (.docx) formatted according to Brazilian legal standards.
 
 ## Why JavaScript as an intermediate format?
