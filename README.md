@@ -1,99 +1,101 @@
-# Gerador de Sentenças — .docx
+**[Leia em Português 🇧🇷](README.pt-BR.md)**
 
-Aplicativo desktop (Electron) que converte sentenças judiciais estruturadas em formato JavaScript para documentos Word (.docx) formatados conforme padrão forense.
+# Court Ruling Generator — .docx
 
-## Por que JavaScript como formato intermediário?
+A desktop application (Electron) that converts structured court rulings written in JavaScript format into Word documents (.docx) formatted according to Brazilian legal standards.
 
-Uma pergunta razoável: por que gerar sentenças em JS e depois converter, ao invés de pedir o `.docx` diretamente a um modelo de linguagem?
+## Why JavaScript as an intermediate format?
 
-**Resposta: economia significativa de tokens em sessões com LLMs.**
+Reasonable question: why generate rulings in JS and then convert, instead of asking an LLM to produce the `.docx` directly?
 
-Pedir que o modelo gere um `.docx` formatado exige que ele produza (direta ou indiretamente) toda a estrutura XML do OpenXML — tags de parágrafo, propriedades de run, formatação de fonte, espaçamento, recuos — repetidas a cada bloco. Isso consome muitos tokens por sentença.
+**Answer: significant token savings in LLM sessions.**
 
-Já o formato JS deste projeto reduz a saída do modelo ao essencial:
+Asking a model to generate a formatted `.docx` forces it to produce (directly or indirectly) the entire OpenXML structure — paragraph tags, run properties, font formatting, spacing, indentation — repeated for every block. This burns tokens fast.
+
+The JS format used in this project reduces the model's output to the essentials:
 
 ```js
-bp('Trata-se de mandado de segurança...')
-cp('Art. 156. Compete aos Municípios...')
-sh('I. DO JULGAMENTO ANTECIPADO')
+bp('This is a writ of mandamus filed by...')
+cp('Art. 156. Municipalities are responsible for...')
+sh('I. EARLY JUDGMENT')
 el()
 ```
 
-A formatação (Times 12, recuo 2,5cm, itálico em citações, espaçamento 1,5, etc.) fica codificada **uma única vez** neste aplicativo, não precisa ser repetida pelo modelo a cada parágrafo.
+Formatting (Times 12, 2.5cm indent, italic citations, 1.5 line spacing, etc.) is encoded **once** inside this app — it doesn't need to be repeated by the model for every paragraph.
 
-> **Observação do autor:** em minhas próprias sessões no Claude Pro, observei que pedir a geração direta de um `.docx` consome aproximadamente **7% a mais da capacidade da sessão** em comparação com gerar o mesmo conteúdo em formato JS para posterior conversão por este aplicativo. A métrica é empírica e baseada em uso pessoal, mas a diferença se confirmou em múltiplas sessões. Em fluxos com várias sentenças por sessão, essa economia libera contexto para o que importa: a fundamentação.
+> **Author's note:** in my own Claude Pro sessions, I observed that asking for direct `.docx` generation consumes roughly **7% more session capacity** compared to generating the same content in JS format and converting it with this app. The metric is empirical and based on personal usage, but the difference has been consistent across multiple sessions. In workflows with several rulings per session, this saved context can be spent on what matters: the legal reasoning.
 
-## O formato esperado
+## Expected format
 
-O texto colado na janela deve seguir esta estrutura:
+The text pasted into the window must follow this structure:
 
 ```js
-const PROCESSO = 'Processo nº 0000000-00.0000.0.00.0000';
+const PROCESSO = 'Case No. 0000000-00.0000.0.00.0000';
 
 const RELATORIO = [
-  bp('Trata-se de ação proposta por Fulano de Tal em face de Beltrano...'),
-  bp('Narra a parte autora que...'),
+  bp('This is a lawsuit filed by John Doe against Jane Roe...'),
+  bp('The plaintiff alleges that...'),
   el(),
-  bp('É o relatório.'),
+  bp('This is the report.'),
 ];
 
 const FUNDAMENTACAO = [
-  sh('I. DO JULGAMENTO ANTECIPADO'),
+  sh('I. EARLY JUDGMENT'),
   el(),
-  bp('A controvérsia é de direito e de fato demonstrável documentalmente...'),
-  sh('II. DO MÉRITO'),
+  bp('The controversy is legal and factually demonstrable through documents...'),
+  sh('II. MERITS'),
   el(),
-  bp('A Constituição Federal dispõe:'),
-  cp('Art. 5º, LIV - ninguém será privado da liberdade ou de seus bens sem o devido processo legal.'),
-  bp('No caso concreto...'),
+  bp('The Federal Constitution provides:'),
+  cp('Art. 5, LIV - no one shall be deprived of liberty or property without due process of law.'),
+  bp('In the present case...'),
 ];
 
 const DISPOSITIVO = [
-  bp('Ante o exposto, JULGO PROCEDENTE o pedido...'),
+  bp('For the reasons stated above, the Court GRANTS the request...'),
 ];
 ```
 
-Cada função marca um tipo de parágrafo:
+Each function marks a paragraph type:
 
-| Função | Tipo | Formatação no .docx |
-|--------|------|------------------------------|
-| `bp(texto)` | parágrafo comum | Times New Roman 12, justificado, recuo 1ª linha 2,5cm, espaçamento 1,5 |
-| `sh(texto)` | subtítulo | Times New Roman 12, **negrito**, justificado |
-| `cp(texto)` | citação legal/doutrinária | Times New Roman 12, *itálico*, justificado, recuo esquerdo 2,5cm |
-| `el()` | linha em branco | parágrafo vazio |
+| Function | Type | Formatting in the .docx |
+|----------|------|-------------------------|
+| `bp(text)` | regular paragraph | Times New Roman 12, justified, first-line indent 2.5cm, 1.5 line spacing |
+| `sh(text)` | subheading | Times New Roman 12, **bold**, justified |
+| `cp(text)` | legal/doctrinal citation | Times New Roman 12, *italic*, justified, left indent 2.5cm |
+| `el()` | blank line | empty paragraph |
 
-As seções `RELATÓRIO`, `FUNDAMENTAÇÃO` e `DISPOSITIVO` são renderizadas como títulos centralizados em negrito, no corpo do documento.
+The sections `RELATORIO` (Report), `FUNDAMENTACAO` (Reasoning), and `DISPOSITIVO` (Ruling) are rendered as centered bold headings inside the document.
 
-## Instalação
+## Installation
 
-Requer [Node.js](https://nodejs.org/) instalado.
+Requires [Node.js](https://nodejs.org/) installed.
 
-Na pasta do projeto, pelo PowerShell ou CMD:
+In the project folder, via PowerShell or CMD:
 
 ```
 npm install
 ```
 
-## Uso em modo desenvolvimento
+## Development mode
 
 ```
 npm start
 ```
 
-A janela abre, você cola o texto no campo grande, clica em **Gerar .docx** e escolhe onde salvar.
+The window opens, paste the text into the main field, click **Gerar .docx** (Generate .docx), and choose where to save.
 
-## Gerando um executável (.exe) para Windows
+## Building a Windows executable (.exe)
 
-Se quiser um `.exe` autônomo (sem precisar abrir o terminal toda vez):
+For a standalone `.exe` (no need to open a terminal each time):
 
 ```
 npm install --save-dev electron-builder
 npm run build
 ```
 
-O executável portable é gerado em `dist\`.
+The portable executable is generated in `dist\`.
 
-## Estrutura do projeto
+## Project structure
 
 ```
 sentenca-docx/
@@ -101,19 +103,19 @@ sentenca-docx/
 ├── README.md
 ├── .gitignore
 └── src/
-    ├── main.js       # processo principal do Electron (janela, IPC, salvar arquivo)
-    ├── preload.js    # ponte segura entre interface e backend
-    ├── index.html    # interface gráfica
-    ├── parser.js     # executa o JS colado num sandbox seguro (vm)
-    └── gerador.js    # monta o .docx com a biblioteca `docx`
+    ├── main.js       # Electron main process (window, IPC, file saving)
+    ├── preload.js    # secure bridge between UI and backend
+    ├── index.html    # graphical interface
+    ├── parser.js     # executes the pasted JS in a secure sandbox (vm)
+    └── gerador.js    # assembles the .docx using the `docx` library
 ```
 
-## Como funciona por dentro
+## How it works under the hood
 
-O parser **executa o código JS colado** num sandbox isolado (módulo `vm` do Node), com as funções `bp`, `sh`, `cp`, `el` redefinidas para marcar cada parágrafo com seu tipo. Não há regex frágil tentando interpretar o texto — o próprio JS do usuário é interpretado pelo Node, com segurança. O gerador então aplica a formatação certa para cada tipo identificado.
+The parser **executes the pasted JS code** inside an isolated sandbox (Node's `vm` module), with the functions `bp`, `sh`, `cp`, `el` redefined to tag each paragraph with its type. No fragile regex trying to interpret text — the user's own JS is interpreted by Node, safely. The generator then applies the correct formatting for each identified type.
 
-Isso significa que adicionar novas funções auxiliares (ex: uma `ct()` para conclusão de tópico) é só adicionar a linha correspondente em `parser.js` e o estilo em `gerador.js`.
+This means adding new helper functions (e.g., a `ct()` for topic conclusions) is just a matter of adding the corresponding line in `parser.js` and the style in `gerador.js`.
 
-## Licença
+## License
 
 MIT
